@@ -3,10 +3,15 @@ from blog.models import Comment, Post, Tag
 
 
 def get_related_posts_count(tag):
+    """Calculate posts number for <tag>"""
     return tag.posts.count()
 
+def get_likes_count(post):
+    """Calculate likes number for <post>"""
+    return post.likes.count()
 
 def serialize_post(post):
+    """<post> object serializer"""
     return {
         'title': post.title,
         'teaser_text': post.text[:200],
@@ -21,15 +26,18 @@ def serialize_post(post):
 
 
 def serialize_tag(tag):
+    """<tag> object serializer"""
     return {
         'title': tag.title,
         'posts_with_tag': len(Post.objects.filter(tags=tag)),
     }
 
 
+    1
 def index(request):
-
-    most_popular_posts = []  # TODO. Как это посчитать?
+    """Main page handler"""
+    posts = Post.objects.all()
+    most_popular_posts = sorted(posts, key=get_likes_count)[-5:]
 
     fresh_posts = Post.objects.order_by('published_at')
     most_fresh_posts = list(fresh_posts)[-5:]
