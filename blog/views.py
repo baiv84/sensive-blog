@@ -6,9 +6,11 @@ def get_related_posts_count(tag):
     """Calculate posts number for <tag>"""
     return tag.posts.count()
 
+
 def get_likes_count(post):
     """Calculate likes number for <post>"""
     return post.likes.count()
+
 
 def serialize_post(post):
     """<post> object serializer"""
@@ -33,7 +35,6 @@ def serialize_tag(tag):
     }
 
 
-    1
 def index(request):
     """Main page handler"""
     posts = Post.objects.all()

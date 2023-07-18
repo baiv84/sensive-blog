@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 
 class Post(models.Model):
+    """<Post> model impementation"""
     title = models.CharField('Заголовок', max_length=200)
     text = models.TextField('Текст')
     slug = models.SlugField('Название в виде url', max_length=200)
@@ -38,6 +39,7 @@ class Post(models.Model):
 
 
 class Tag(models.Model):
+    """<Tag> model impementation"""
     title = models.CharField('Тег', max_length=20, unique=True)
 
     def __str__(self):
@@ -56,6 +58,7 @@ class Tag(models.Model):
 
 
 class Comment(models.Model):
+    """<Comment> model impementation"""
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
