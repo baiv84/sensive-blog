@@ -6,6 +6,7 @@ from blog.models import Comment, Post, Tag
 def get_related_posts_count(tag):
     """Calculate posts number for <tag>"""
     return tag.posts.count()
+    #return tag.num_posts
 
 
 def get_likes_count(post):
@@ -38,8 +39,8 @@ def serialize_tag(tag):
 
 def index(request):
     """Main page handler"""
-    post_likes = Post.objects.annotate(num_likes=Count('likes'))
-    most_popular_posts = sorted(post_likes, key=get_likes_count)[-5:]
+    post_likes = Post.objects.annotate(num_likes=Count('likes')).order_by('num_likes')
+    most_popular_posts = list(post_likes)[-5:]
 
     fresh_posts = Post.objects.order_by('published_at')
     most_fresh_posts = list(fresh_posts)[-5:]
@@ -47,6 +48,9 @@ def index(request):
     tags = Tag.objects.all()
     popular_tags = sorted(tags, key=get_related_posts_count)
     most_popular_tags = popular_tags[-5:]
+
+    # tag_posts = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')
+    # most_popular_tags = list(tag_posts)[:5]
 
     context = {
         'most_popular_posts': [
