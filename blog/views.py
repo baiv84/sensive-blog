@@ -1,5 +1,5 @@
 from django.db.models import Count
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from blog.models import Comment, Post, Tag
 
 
@@ -76,10 +76,11 @@ def index(request):
 
 
 def post_detail(request, slug):
-    """Get particular <post> object information"""
-    post = Post.objects.get(slug=slug)
-    comments = Comment.objects.filter(post=post)
+    """Render particular <post> object page"""
+    post = get_object_or_404(Post.objects.popular(), slug=slug)
+    comments = post.comments.prefetch_related('author')
     serialized_comments = []
+    
     for comment in comments:
         serialized_comments.append({
             'text': comment.text,
@@ -87,28 +88,26 @@ def post_detail(request, slug):
             'author': comment.author.username,
         })
 
-    likes = post.likes.all()
-
-    related_tags = post.tags.all()
-
+    related_tags = post.tags.annotate(posts_count=Count('posts'))
     serialized_post = {
         'title': post.title,
         'text': post.text,
         'author': post.author.username,
         'comments': serialized_comments,
-        'likes_amount': len(likes),
+        'likes_amount': post.likes_count,
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
         'tags': [serialize_tag(tag) for tag in related_tags],
     }
 
-    tag_posts = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')
-    most_popular_tags = list(tag_posts)[:5]
-
-    post_likes = Post.objects.annotate(num_likes=Count('likes')).order_by('num_likes')
-    most_popular_posts = list(post_likes)[-5:]
-
+    most_popular_posts = Post.objects.popular() \
+                                     .prefetch_authors_and_tags_with_posts_count()[:5] \
+                                     .fetch_with_comments_count()
+        
+    most_popular_tags = Tag.objects.popular()[:5] \
+                                   .annotate(posts_count=Count('posts'))
+    
     context = {
         'post': serialized_post,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
