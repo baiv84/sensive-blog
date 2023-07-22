@@ -29,10 +29,10 @@ class PostQuerySet(models.QuerySet):
 
     def prefetch_authors_and_tags_with_posts_count(self):
         """Preload authors with tag posts count"""
-        posts_query_set = self.prefetch_related('author', \
+        posts_query_set = self.prefetch_related('author',
                                                 models.Prefetch('tags', queryset=Tag.objects.annotate(posts_count=models.Count('posts'))))
         return posts_query_set
-    
+
 
 class TagQuerySet(models.QuerySet):
     """<Tag> model custom manager"""
@@ -57,13 +57,13 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Автор',
         limit_choices_to={'is_staff': True})
-    
+
     likes = models.ManyToManyField(
         User,
         related_name='liked_posts',
         verbose_name='Кто лайкнул',
         blank=True)
-    
+
     tags = models.ManyToManyField(
         'Tag',
         related_name='posts',
@@ -108,7 +108,7 @@ class Comment(models.Model):
         related_name='comments',
         on_delete=models.CASCADE,
         verbose_name='Пост, к которому написан')
-    
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

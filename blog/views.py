@@ -31,14 +31,13 @@ def index(request):
     most_popular_posts = Post.objects.popular() \
                                      .prefetch_authors_and_tags_with_posts_count()[:5] \
                                      .fetch_with_comments_count()
-        
+
     most_popular_tags = Tag.objects.popular()[:5] \
                                    .annotate(posts_count=Count('posts'))
 
     most_fresh_posts = Post.objects.annotate(comments_count=Count('comments', distinct=True)) \
                                    .order_by('-published_at')[:5] \
                                    .prefetch_authors_and_tags_with_posts_count()
-    
 
     context = {
         'most_popular_posts': [
@@ -55,7 +54,7 @@ def post_detail(request, slug):
     post = get_object_or_404(Post.objects.popular(), slug=slug)
     comments = post.comments.select_related('author')
     serialized_comments = []
-    
+
     for comment in comments:
         serialized_comments.append({
             'text': comment.text,
@@ -79,10 +78,10 @@ def post_detail(request, slug):
     most_popular_posts = Post.objects.popular() \
                                      .prefetch_authors_and_tags_with_posts_count()[:5] \
                                      .fetch_with_comments_count()
-        
+
     most_popular_tags = Tag.objects.popular()[:5] \
                                    .annotate(posts_count=Count('posts'))
-    
+
     context = {
         'post': serialized_post,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
@@ -100,14 +99,14 @@ def tag_filter(request, tag_title):
     most_popular_posts = Post.objects.popular() \
                                      .prefetch_authors_and_tags_with_posts_count()[:5] \
                                      .fetch_with_comments_count()
-        
+
     most_popular_tags = Tag.objects.popular()[:5] \
                                    .annotate(posts_count=Count('posts'))
-    
+
     related_posts = tag.posts.all()[:20] \
                        .annotate(comments_count=Count('comments')) \
                        .prefetch_authors_and_tags_with_posts_count()
-    
+
     context = {
         'tag': tag.title,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
