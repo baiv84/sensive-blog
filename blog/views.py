@@ -1,35 +1,10 @@
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404
-from blog.models import Comment, Post, Tag
-
-
-def get_related_posts_count(tag):
-    """Calculate posts number for <tag>"""
-    return tag.num_posts
-
-
-def get_likes_count(post):
-    """Calculate likes number for <post>"""
-    return post.num_likes
+from blog.models import Post, Tag
 
 
 def serialize_post(post):
     """<post> object serializer"""
-    return {
-        'title': post.title,
-        'teaser_text': post.text[:200],
-        'author': post.author.username,
-        'comments_amount': len(Comment.objects.filter(post=post)),
-        'image_url': post.image.url if post.image else None,
-        'published_at': post.published_at,
-        'slug': post.slug,
-        'tags': [serialize_tag(tag) for tag in post.tags.all()],
-        'first_tag_title': post.tags.all()[0].title,
-    }
-
-
-def serialize_post_optimized(post):
-    """New serialized_post function"""
     return {
         'title': post.title,
         'teaser_text': post.text[:200],
@@ -52,7 +27,7 @@ def serialize_tag(tag):
 
 
 def index(request):
-    """Main page handler"""
+    """Render main page"""
     most_popular_posts = Post.objects.popular() \
                                      .prefetch_authors_and_tags_with_posts_count()[:5] \
                                      .fetch_with_comments_count()
@@ -67,18 +42,18 @@ def index(request):
 
     context = {
         'most_popular_posts': [
-            serialize_post_optimized(post) for post in most_popular_posts
+            serialize_post(post) for post in most_popular_posts
         ],
-        'page_posts': [serialize_post_optimized(post) for post in most_fresh_posts],
+        'page_posts': [serialize_post(post) for post in most_fresh_posts],
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
     }
     return render(request, 'index.html', context)
 
 
 def post_detail(request, slug):
-    """Render particular <post> object page"""
+    """Render <post> page"""
     post = get_object_or_404(Post.objects.popular(), slug=slug)
-    comments = post.comments.prefetch_related('author')
+    comments = post.comments.select_related('author')
     serialized_comments = []
     
     for comment in comments:
@@ -112,14 +87,14 @@ def post_detail(request, slug):
         'post': serialized_post,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
         'most_popular_posts': [
-            serialize_post_optimized(post) for post in most_popular_posts
+            serialize_post(post) for post in most_popular_posts
         ],
     }
     return render(request, 'post-details.html', context)
 
 
 def tag_filter(request, tag_title):
-    """Render particular <tag> object page"""
+    """Render <tag> page"""
     tag = get_object_or_404(Tag, title=tag_title)
 
     most_popular_posts = Post.objects.popular() \
@@ -136,9 +111,9 @@ def tag_filter(request, tag_title):
     context = {
         'tag': tag.title,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
-        'posts': [serialize_post_optimized(post) for post in related_posts],
+        'posts': [serialize_post(post) for post in related_posts],
         'most_popular_posts': [
-            serialize_post_optimized(post) for post in most_popular_posts
+            serialize_post(post) for post in most_popular_posts
         ],
     }
     return render(request, 'posts-list.html', context)
@@ -147,4 +122,3 @@ def tag_filter(request, tag_title):
 def contacts(request):
     """Contact page rendering"""
     return render(request, 'contacts.html', {})
-2

@@ -35,7 +35,7 @@ class PostQuerySet(models.QuerySet):
     
 
 class TagQuerySet(models.QuerySet):
-    """<Post> model custom manager"""
+    """<Tag> model custom manager"""
     def popular(self):
         most_popular_tags = self.annotate(used_in_posts=models.Count('posts')) \
                                 .order_by('-used_in_posts')
@@ -109,7 +109,6 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Пост, к которому написан')
     
-
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
