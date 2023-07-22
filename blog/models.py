@@ -6,15 +6,13 @@ from django.contrib.auth.models import User
 class PostQuerySet(models.QuerySet):
     """<Post> model custom manager"""
     def year(self, year):
-        posts_at_year = self.filter(published_at__year=year).order_by(
-            'published_at'
-        )
+        posts_at_year = self.filter(published_at__year=year) \
+                            .order_by('published_at')
         return posts_at_year
 
     def popular(self):
-        popular_posts = self.annotate(
-            likes_count=models.Count('likes')
-        ).order_by('-likes_count')
+        popular_posts = self.annotate(likes_count=models.Count('likes')) \
+                            .order_by('-likes_count')
         return popular_posts
 
     def fetch_with_comments_count(self):
@@ -26,7 +24,6 @@ class PostQuerySet(models.QuerySet):
         count_for_id = dict(ids_and_comments)
 
         for post in self:
-            # store amount of comments in <post> object
             post.comments_count = count_for_id[post.id]
         return self
 

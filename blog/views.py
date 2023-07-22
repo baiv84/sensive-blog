@@ -47,7 +47,7 @@ def serialize_tag(tag):
     """<tag> object serializer"""
     return {
         'title': tag.title,
-        'posts_with_tag': len(Post.objects.filter(tags=tag)),
+        'posts_with_tag': tag.posts_count,
     }
 
 
@@ -119,23 +119,26 @@ def post_detail(request, slug):
 
 
 def tag_filter(request, tag_title):
-    """Get particular <tag> object information"""
-    tag = Tag.objects.get(title=tag_title)
+    """Render particular <tag> object page"""
+    tag = get_object_or_404(Tag, title=tag_title)
 
-    tag_posts = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')
-    most_popular_tags = list(tag_posts)[:5]
-
-    post_likes = Post.objects.annotate(num_likes=Count('likes')).order_by('num_likes')
-    most_popular_posts = list(post_likes)[-5:]
-
-    related_posts = tag.posts.all()[:20]
-
+    most_popular_posts = Post.objects.popular() \
+                                     .prefetch_authors_and_tags_with_posts_count()[:5] \
+                                     .fetch_with_comments_count()
+        
+    most_popular_tags = Tag.objects.popular()[:5] \
+                                   .annotate(posts_count=Count('posts'))
+    
+    related_posts = tag.posts.all()[:20] \
+                       .annotate(comments_count=Count('comments')) \
+                       .prefetch_authors_and_tags_with_posts_count()
+    
     context = {
         'tag': tag.title,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
-        'posts': [serialize_post(post) for post in related_posts],
+        'posts': [serialize_post_optimized(post) for post in related_posts],
         'most_popular_posts': [
-            serialize_post(post) for post in most_popular_posts
+            serialize_post_optimized(post) for post in most_popular_posts
         ],
     }
     return render(request, 'posts-list.html', context)
@@ -144,3 +147,4 @@ def tag_filter(request, tag_title):
 def contacts(request):
     """Contact page rendering"""
     return render(request, 'contacts.html', {})
+2
