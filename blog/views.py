@@ -1,5 +1,5 @@
 from django.db.models import Count
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from blog.models import Comment, Post, Tag
 
 
@@ -54,7 +54,7 @@ def serialize_tag(tag):
 def index(request):
     """Main page handler"""
     most_popular_posts = Post.objects.popular() \
-                                     .prefetch_authors_and_tags_with_comments_count()[:5] \
+                                     .prefetch_authors_and_tags_with_posts_count()[:5] \
                                      .fetch_with_comments_count()
         
     most_popular_tags = Tag.objects.popular()[:5] \
@@ -62,7 +62,7 @@ def index(request):
 
     most_fresh_posts = Post.objects.annotate(comments_count=Count('comments', distinct=True)) \
                                    .order_by('-published_at')[:5] \
-                                   .prefetch_authors_and_tags_with_comments_count()
+                                   .prefetch_authors_and_tags_with_posts_count()
     
 
     context = {

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 
 class PostQuerySet(models.QuerySet):
+    """<Post> model custom manager"""
     def year(self, year):
         posts_at_year = self.filter(published_at__year=year).order_by(
             'published_at'
@@ -17,40 +18,32 @@ class PostQuerySet(models.QuerySet):
         return popular_posts
 
     def fetch_with_comments_count(self):
-        """Reduce amount of time needed for processing double annotation"""
+        """Optimize comments counting process"""
         most_popular_posts_ids = [post.id for post in self]
-        posts_with_comments = Post.objects.filter(
-            id__in=most_popular_posts_ids
-        ).annotate(comments_count=models.Count('comments'))
-        ids_and_comments = posts_with_comments.values_list(
-            'id', 'comments_count'
-        )
+        posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids) \
+                                          .annotate(comments_count=models.Count('comments'))
+        ids_and_comments = posts_with_comments.values_list('id', 'comments_count')
         count_for_id = dict(ids_and_comments)
 
         for post in self:
+            # store amount of comments in <post> object
             post.comments_count = count_for_id[post.id]
-
         return self
 
-    def prefetch_authors_and_tags_with_comments_count(self):
-        posts_query_set = self.prefetch_related(
-            'author',
-            models.Prefetch(
-                'tags',
-                queryset=Tag.objects.annotate(
-                    posts_count=models.Count('posts')
-                ),
-            ),
-        )
+    def prefetch_authors_and_tags_with_posts_count(self):
+        """Preload authors with tag posts count"""
+        posts_query_set = self.prefetch_related('author', \
+                                                models.Prefetch('tags', queryset=Tag.objects.annotate(posts_count=models.Count('posts'))))
         return posts_query_set
     
 
 class TagQuerySet(models.QuerySet):
+    """<Post> model custom manager"""
     def popular(self):
-        most_popular_tags = self.annotate(
-            used_in_posts=models.Count('posts')
-        ).order_by('-used_in_posts')
+        most_popular_tags = self.annotate(used_in_posts=models.Count('posts')) \
+                                .order_by('-used_in_posts')
         return most_popular_tags
+
 
 class Post(models.Model):
     """<Post> model impementation"""
