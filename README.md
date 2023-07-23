@@ -1,47 +1,100 @@
-# Блог им. Юрия Григорьевича
+# Yuri Grigorievich success stories blog
 
-Блог о коммерческом успехе Юрия Григорьевича. Делюсь советами по бизнесу, жизни и о воспитании детей.
-
+Yuri, self-made man, share personal success stories on his personal blog pages.
 ![Скриншот](screenshots/site.png)
 
-## Запуск
+## Prepare virtual environment
 
-Для запуска сайта вам понадобится Python третьей версии.
+First, install package `python3-venv` to work with python virtual environment.
 
-Скачайте код с GitHub. Установите зависимости:
+Update packages on your system `!(it depends on your operating system)`
+in this document I use Ubuntu as my operating system. 
 
-```sh
-pip install -r requirements.txt
+So I run update command:
+
+```console
+$ sudo apt update
 ```
 
-Создайте базу данных SQLite
+and run command:
 
-```sh
-python3 manage.py migrate
+```console
+$ sudo apt install -y python3-venv
 ```
 
-Запустите разработческий сервер
+Then jump to project folder:
 
+```console
+$ cd sensive-blog
 ```
-python3 manage.py runserver
+
+and create new python environment to run the code:
+```console
+$ python3 -m venv venv
 ```
 
-## Переменные окружения
+Activate new virtual environment:
 
-Часть настроек проекта берётся из переменных окружения. Чтобы их определить, создайте файл `.env` рядом с `manage.py` и запишите туда данные в таком формате: `ПЕРЕМЕННАЯ=значение`.
+```console
+$ source venv/bin/activate
+```
 
-Доступны 3 переменные:
-- `DEBUG` — дебаг-режим. Поставьте `True`, чтобы увидеть отладочную информацию в случае ошибки.
-- `SECRET_KEY` — секретный ключ проекта
-- `DATABASE_FILEPATH` — полный путь к файлу базы данных SQLite, например: `/home/user/schoolbase.sqlite3`
-- `ALLOWED_HOSTS` — см [документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+As a result, you will see command line prompt like this:
+
+```console
+(venv) sensive-blog $
+```
+
+Next step, install all necessary dependencies
+
+```console
+(venv) sensive-blog $  pip3 install -r requirements.txt
+```
+
+## Prepare database file
+
+Download database file `db.sqlite3` and put it to the project folder, next to `manage.py` file.
+
+Download `media` folder and put it to the project folder, next to `manage.py` file as well.
+
+## Run data migrations 
+
+To run data migrations, execute command:
+
+```console
+  (venv) sensive-blog $ python3 manage.py migrate
+```
+
+## Create superuser account
+
+To create superuser account, run command:
+
+```console
+  (venv) sensive-blog $ python3 manage.py createsuperuser
+```
+
+This process accompanied with questions, you have just answer to create superuser.
 
 
-## Цели проекта
+## Run Yuri Grigorievich success blog
 
-Код написан в учебных целях — для курса по Python и веб-разработке на сайте [Devman](https://dvmn.org).
+To start Yuri success blog site, execute command:
 
-В частности, репозиторий используется:
+```console
+  (venv) sensive-blog $ python3 manage.py runserver
+```
 
-- В уроке "Оптимизируем сайт" курса [Знакомство с Django: ORM](https://dvmn.org/modules/django-orm/).
-- В туториале [Превью для ImageField в админке](https://devman.org/encyclopedia/django/how-to-setup-image-preview/)
+Afterwards, in web browser open link: `http://127.0.0.1:8000/`
+
+The main blog page will start shortly.
+
+If you want to run administrative page, in web browser open link: `http://127.0.0.1:8000/admin/`
+
+Enter `username` and `password` of superuser you have created in the previous step.
+
+As a result, you will see the administration web form, where you can manipulate with all program entities, such as `Users`, `Groups`, `Posts`, `Tags` and `Comments`.
+
+
+# Projects goals
+
+This site was written as a study project for Python web development course [Devman](https://dvmn.org)
