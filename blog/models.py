@@ -6,22 +6,24 @@ from django.contrib.auth.models import User
 class PostQuerySet(models.QuerySet):
     """<Post> model custom manager"""
     def year(self, year):
+        """Get <post> queryset for some year"""
         posts_at_year = self.filter(published_at__year=year) \
                             .order_by('published_at')
         return posts_at_year
 
     def popular(self):
+        """Get <post> queryset sorted by likes count3 (desc mode)"""
         popular_posts = self.annotate(likes_count=models.Count('likes')) \
                             .order_by('-likes_count')
         return popular_posts
 
     def fetch_with_comments_count(self):
         """Optimize comments counting process"""
-        most_popular_posts_ids = [post.id for post in self]
-        posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids) \
+        queryset_posts_ids = [post.id for post in self]
+        posts_with_comments = Post.objects.filter(id__in=queryset_posts_ids) \
                                           .annotate(comments_count=models.Count('comments'))
-        ids_and_comments = posts_with_comments.values_list('id', 'comments_count')
-        count_for_id = dict(ids_and_comments)
+        ids_and_comments_count = posts_with_comments.values_list('id', 'comments_count')
+        count_for_id = dict(ids_and_comments_count)
 
         for post in self:
             post.comments_count = count_for_id[post.id]
@@ -37,8 +39,8 @@ class PostQuerySet(models.QuerySet):
 class TagQuerySet(models.QuerySet):
     """<Tag> model custom manager"""
     def popular(self):
-        most_popular_tags = self.annotate(used_in_posts=models.Count('posts')) \
-                                .order_by('-used_in_posts')
+        most_popular_tags = self.annotate(posts_per_tag_count=models.Count('posts')) \
+                                .order_by('-posts_per_tag_count')
         return most_popular_tags
 
 
